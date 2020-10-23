@@ -7,7 +7,6 @@
 #include <math.h>
 #include <stdint.h>
 #include <sys/param.h>    // Attempt to define endianness
-#include <conio.h>
 #ifdef linux
 # include <endian.h>      // Attempt to define endianness
 #else

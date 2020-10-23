@@ -3,7 +3,6 @@
 #define __device__
 
 #include <prho_vow.h>
-#include "C:\MinGW\include\time.h"
 #include <hash3_code.h>
 
 
