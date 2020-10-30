@@ -1,0 +1,66 @@
+mpirun --hostfile hostfile -ppn 1 -n $((1 * 1)) bin/saida
+
+
+POLLARD RHO ALGORITHM  --  VOW
+
+Number of bits of the EC prime field (16/20/24/28/32): 28
+
+
+Elliptic curve:   y^2 = x^3 + x + 44      (mod 268434997, 28 bits)
+
+Order of the curve = 268446727
+
+Number of workers = 1
+
+Calculating point Q = kP      (k = 7514)
+
+P = (x = 47793986, y = 101136283) (r =      194, s = 140733727421239)         (Base Point)
+Q = (x = 46350518, y = 252047061) (r = 81651724, s = 234119827)         (Q = kP    )
+
+
+key found = 7514
+key is = 7514
+
+
+Run[  1] converged after    1 iterations: k = 7514, nworkers =    1,
+         setup time = 112425.5 ms, conv time = 2223375.4 ms (itfs "all-equal")
+
+key found = 7514
+key is = 7514
+
+
+Run[  2] converged after    1 iterations: k = 7514, nworkers =    1,
+         setup time = 101135.6 ms, conv time = 3289093.2 ms (itfs "all-equal")
+
+key found = 7514
+key is = 7514
+
+
+Run[  3] converged after    1 iterations: k = 7514, nworkers =    1,
+         setup time = 95673.4 ms, conv time = 1251717.4 ms (itfs "all-equal")
+
+key found = 7514
+key is = 7514
+
+
+Run[  4] converged after    1 iterations: k = 7514, nworkers =    1,
+         setup time = 104339.8 ms, conv time = 937049.1 ms (itfs "all-equal")
+
+key found = 7514
+key is = 7514
+
+
+Run[  5] converged after    1 iterations: k = 7514, nworkers =    1,
+         setup time = 104080.5 ms, conv time = 1865015.5 ms (itfs "all-equal")
+
+
+
+FINAL STATISTICS
+
+Runs = 5, Min Its # = 1,  Max Its = 1, Av. Iteration # = 1
+Av. Setup Time = 103531.0 ms, Total Setup Time = 517654.8 ms
+Av. Iteration Time = 1913250.1 ms, Total Iteration Time = 9566250.5 ms
+Total Time (Setup + Convergence) = 10083905.3 ms
+
+Tempo Total de Execucao do Programa = 10093958.3 ms
+# ./a.out

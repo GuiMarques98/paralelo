@@ -1,0 +1,101 @@
+mpirun --hostfile hostfile -ppn 1 -n $((1 * 1)) bin/saida
+
+
+POLLARD RHO ALGORITHM  --  VOW
+
+Number of bits of the EC prime field (16/20/24/28/32): 24
+
+
+Elliptic curve:   y^2 = x^3 + x + 44      (mod 16774421, 24 bits)
+
+Order of the curve = 16770883
+
+Number of workers = 1
+
+Calculating point Q = kP      (k = 2349)
+
+P = (x =  4530807, y =  1256865) (r =      194, s = 140735112045799)         (Base Point)
+Q = (x = 14439511, y = 10327809) (r = 16276822, s = 12344940)         (Q = kP    )
+
+
+key found = 2349
+key is = 2349
+
+
+Run[  1] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 7164.3 ms, conv time = 31135.8 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[  2] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 6237.3 ms, conv time = 88463.2 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[  3] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 5802.8 ms, conv time = 34681.9 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[  4] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 6466.6 ms, conv time = 23826.1 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[  5] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 6466.3 ms, conv time = 82048.3 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[  6] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 6995.2 ms, conv time = 48395.5 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[  7] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 8081.7 ms, conv time = 83636.9 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[  8] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 7450.5 ms, conv time = 69118.0 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[  9] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 8099.4 ms, conv time = 38945.7 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[ 10] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 8388.6 ms, conv time = 15633.9 ms (itfs "all-equal")
+
+
+
+FINAL STATISTICS
+
+Runs = 10, Min Its # = 1,  Max Its = 1, Av. Iteration # = 1
+Av. Setup Time = 7115.3 ms, Total Setup Time = 71152.8 ms
+Av. Iteration Time = 51588.5 ms, Total Iteration Time = 515885.2 ms
+Total Time (Setup + Convergence) = 587038.0 ms
+
+Tempo Total de Execucao do Programa = 587539.1 ms
+# ./a.out

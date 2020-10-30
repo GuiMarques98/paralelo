@@ -1,0 +1,121 @@
+1 add barrier 621.9 ms
+1 add pthread = 13.7 ms;
+
+20;
+Runs = 10, Min Its # = 1,  Max Its = 1, Av. Iteration # = 1
+Av. Setup Time = 321.5 ms, Total Setup Time = 3215.0 ms
+Av. Iteration Time = 17.6 ms, Total Iteration Time = 176.5 ms
+Total Time (Setup + Convergence) = 3391.5 ms
+
+Runs = 10, Min Its # = 1,  Max Its = 1, Av. Iteration # = 1
+Av. Setup Time = 587.9 ms, Total Setup Time = 5878.7 ms
+Av. Iteration Time = 226.8 ms, Total Iteration Time = 2268.0 ms
+Total Time (Setup + Convergence) = 8146.7 ms
+20
+---------------------------------------------------------------------------------------------
+mpirun --hostfile hostfile -ppn 1 -n $((1 * 1)) bin/saida
+
+
+POLLARD RHO ALGORITHM  --  VOW
+
+Number of bits of the EC prime field (16/20/24/28/32): 24
+
+
+Elliptic curve:   y^2 = x^3 + x + 44      (mod 16774421, 24 bits)
+
+Order of the curve = 16770883
+
+Number of workers = 1
+
+Calculating point Q = kP      (k = 2349)
+
+P = (x =  4530807, y =  1256865) (r =      194, s = 140730186071223)         (Base Point)
+Q = (x = 14439511, y = 10327809) (r = 16276822, s = 12344940)         (Q = kP    )
+
+
+key found = 2349
+key is = 2349
+
+
+Run[  1] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 5643.2 ms, conv time = 21325.5 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[  2] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 5200.4 ms, conv time = 62288.6 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[  3] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 6192.1 ms, conv time = 51289.0 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[  4] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 5598.3 ms, conv time = 9632.9 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[  5] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 5801.4 ms, conv time = 33165.8 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[  6] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 6215.4 ms, conv time = 56769.8 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[  7] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 6195.4 ms, conv time = 25531.7 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[  8] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 6243.5 ms, conv time = 93531.3 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[  9] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 5957.9 ms, conv time = 42988.8 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+
+Run[ 10] converged after    1 iterations: k = 2349, nworkers =    1,
+         setup time = 5869.6 ms, conv time = 70177.1 ms (itfs "all-equal")
+
+
+
+FINAL STATISTICS
+
+Runs = 10, Min Its # = 1,  Max Its = 1, Av. Iteration # = 1
+Av. Setup Time = 5891.7 ms, Total Setup Time = 58917.2 ms
+Av. Iteration Time = 46670.0 ms, Total Iteration Time = 466700.5 ms
+Total Time (Setup + Convergence) = 525617.7 ms
+
+Tempo Total de Execucao do Programa = 525982.6 ms
+# ./a.out
+
+
+
+----------------------------------------------------------------------------
+

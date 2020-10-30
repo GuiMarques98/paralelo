@@ -1,0 +1,211 @@
+mpirun --hostfile hostfile -ppn 4 -n $((3 * 4)) bin/saida
+
+
+POLLARD RHO ALGORITHM  --  VOW
+
+Number of bits of the EC prime field (16/20/24/28/32): 24
+
+
+Elliptic curve:   y^2 = x^3 + x + 44      (mod 16774421, 24 bits)
+
+Order of the curve = 16770883
+
+Number of workers = 12
+
+Calculating point Q = kP      (k = 2349)
+
+P = (x =  4530807, y =  1256865) (r =      194, s = 140734321122711)         (Base Point)
+Q = (x = 14439511, y = 10327809) (r = 16276822, s = 12344940)         (Q = kP    )
+
+
+key found = 2349
+key is = 2349
+
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+
+Run[  1] converged after    1 iterations: k = 2349, nworkers =   12,
+         setup time = 7207.3 ms, conv time = 27212.7 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+
+Run[  2] converged after    1 iterations: k = 2349, nworkers =   12,
+         setup time = 7680.2 ms, conv time = 38202.7 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+
+Run[  3] converged after    1 iterations: k = 2349, nworkers =   12,
+         setup time = 8044.0 ms, conv time = 68308.0 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+
+Run[  4] converged after    1 iterations: k = 2349, nworkers =   12,
+         setup time = 7214.8 ms, conv time = 41197.3 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+
+Run[  5] converged after    1 iterations: k = 2349, nworkers =   12,
+         setup time = 7298.8 ms, conv time = 13789.2 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+
+Run[  6] converged after    1 iterations: k = 2349, nworkers =   12,
+         setup time = 7328.0 ms, conv time = 49448.0 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+
+Run[  7] converged after    1 iterations: k = 2349, nworkers =   12,
+         setup time = 7363.9 ms, conv time = 60383.4 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+
+Run[  8] converged after    1 iterations: k = 2349, nworkers =   12,
+         setup time = 7529.6 ms, conv time = 44782.4 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+
+Run[  9] converged after    1 iterations: k = 2349, nworkers =   12,
+         setup time = 7843.9 ms, conv time = 27148.3 ms (itfs "all-equal")
+
+key found = 2349
+key is = 2349
+
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+PUTA Q PARIU MANO
+
+Run[ 10] converged after    1 iterations: k = 2349, nworkers =   12,
+         setup time = 7744.4 ms, conv time = 25107.8 ms (itfs "all-equal")
+
+
+
+FINAL STATISTICS
+
+Runs = 10, Min Its # = 1,  Max Its = 1, Av. Iteration # = 1
+Av. Setup Time = 7525.5 ms, Total Setup Time = 75255.0 ms
+Av. Iteration Time = 39558.0 ms, Total Iteration Time = 395579.9 ms
+Total Time (Setup + Convergence) = 470834.9 ms
+
+Tempo Total de Execucao do Programa = 472046.2 ms
+# ./a.out

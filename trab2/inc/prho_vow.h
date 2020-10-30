@@ -52,6 +52,8 @@ typedef struct type_point {
    long long int s;
 } POINT_T;
 
+
+
 typedef struct PointSet {
    POINT_T itpoint[NUM_IT_FUNCTION_INTERVALS];
 } IT_POINT_SET;

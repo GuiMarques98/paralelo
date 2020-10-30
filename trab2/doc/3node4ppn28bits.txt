@@ -1,0 +1,28 @@
+mpirun --hostfile hostfile -ppn 4 -n $((3 * 4)) bin/saida
+
+
+POLLARD RHO ALGORITHM  --  VOW
+
+Number of bits of the EC prime field (16/20/24/28/32): 28
+
+
+Elliptic curve:   y^2 = x^3 + x + 44      (mod 268434997, 28 bits)
+
+Order of the curve = 268446727
+
+Number of workers = 12
+
+Calculating point Q = kP      (k = 7514)
+
+P = (x = 47793986, y = 101136283) (r =      194, s = 140730146098759)         (Base Point)
+Q = (x = 46350518, y = 252047061) (r = 81651724, s = 234119827)         (Q = kP    )
+
+
+
+===================================================================================
+=   BAD TERMINATION OF ONE OF YOUR APPLICATION PROCESSES
+=   PID 190497 RUNNING AT cm3
+=   EXIT CODE: 15
+=   CLEANING UP REMAINING PROCESSES
+=   YOU CAN IGNORE THE BELOW CLEANUP MESSAGES
+===================================================================================

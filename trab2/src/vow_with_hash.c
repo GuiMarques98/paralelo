@@ -5,14 +5,17 @@
 
 #include "../inc/prho_vow.h"
 #include "../inc/hash3_code.h"
-#include <mpi.h>
 #include <time.h>
+#include <mpi.h>
+#include <string.h>
+#include <pthread.h>
 
 // Defines that the user can control
-#define MAX_RUNS                    10
-#define MODULO_NUM_BITS             16
-#define NUM_THREADS                  1
+#define MAX_RUNS                     1
+#define MODULO_NUM_BITS             28
+// #define NUM_THREADS                  8
 #define MAX_EMPTY_SLOT_NOT_FOUND   100
+#define PROGRAM_ROOT                 0
 
 // GLOBAL VARIABLES
 
@@ -20,7 +23,7 @@
 const int algorithm = VOW;
 const int L = NUM_IT_FUNCTION_INTERVALS;
 const int nbits = MODULO_NUM_BITS;
-const int nworkers = NUM_THREADS;
+int nworkers;
 
 // NON-CONSTANT VALUED GLOBAL VARIABLES
 long long n_unfruitfulcollisions = 0;
@@ -29,11 +32,27 @@ long long kvaluefound;
 POINT_T   hashtable[TABLESIZE];
 POINT_T   EMPTY_POINT = {0, 0, 0, 0};
 POINT_T   Psums[MODULO_NUM_BITS], Qsums[MODULO_NUM_BITS];
-POINT_T   X[NUM_THREADS];
+POINT_T*  X;
+POINT_T   X_process;
 
 IT_POINT_SET itPsetBase;
 
-IT_POINT_SET itPsets[NUM_THREADS];
+IT_POINT_SET* itPsets;
+IT_POINT_SET  itPsets_process;
+
+long long key = NO_KEY_FOUND, a = 1, b = 44, p, maxorder, k;
+
+// MPI variables
+int process_rank, size_of_cluster;
+
+MPI_Datatype point_struct;
+MPI_Datatype it_point_struct;
+
+
+// Pthread
+pthread_mutex_t lock;
+pthread_cond_t running_condition;
+short pthread_finish = 1;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -393,7 +412,7 @@ rand_itpset(IT_POINT_SET *itpset, POINT_T *Psums, POINT_T *Qsums,
             int algorithm, int tid) {
 
     srand((time(NULL)) ^ tid);
-    // #MPI
+
     for (long long i=0; i < L; i++) {
         long long r = get_rand(order);
         long long s = get_rand(order);
@@ -401,7 +420,6 @@ rand_itpset(IT_POINT_SET *itpset, POINT_T *Psums, POINT_T *Qsums,
         itpset->itpoint[i] = EMPTY_POINT;
         uint32_t bitmask = 1;
 
-        // #MPI
         for (long long j=0; j < nbits; j++) {
             if (r & bitmask) {
                 itpset->itpoint[i] = addpoints(itpset->itpoint[i], Psums[j], a, p, 0);
@@ -647,7 +665,6 @@ void initial_point(POINT_T *init_point, POINT_T *Psums, POINT_T *Qsums, int nbit
         r = get_rand(order);
         s = get_rand(order);
 
-        // #MPI
         for (i=0; i < nbits; i++) {
             if (r & bitmask) {
                 ipoint = addpoints(ipoint, Psums[i], a, p, 0);
@@ -682,11 +699,20 @@ void
 setup_worker(long long a, long long p, long long order, const int L, const int nbits, const int id, const int alg) {
 
     // Calculate the iteration point set for this worker
-    calc_iteration_point_set3(&itPsets[id], &itPsetBase, Psums, Qsums, id, a, p, order, L, nbits, alg);
+    calc_iteration_point_set3(&itPsets_process, &itPsetBase, Psums, Qsums, id, a, p, order, L, nbits, alg);
 
     // Calculate the initial point for this worker
     initial_point(&X[id], Psums, Qsums, nbits, id, alg, nworkers, a, p, order);
+    POINT_T buffer_r[size_of_cluster];
 
+    MPI_Gather(&X[id], 1, point_struct, buffer_r, 1, point_struct, PROGRAM_ROOT, MPI_COMM_WORLD);
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    if(process_rank == 0) {
+        for(int i=0; i<size_of_cluster;++i) {
+            X[i] = buffer_r[i];
+        }
+    }
     return;
 }
 
@@ -699,17 +725,25 @@ setup_worker(long long a, long long p, long long order, const int L, const int n
 //      P1 = r1*P + s1*Q,       P2 = r2*P + s2Q,       P1 = P2
 //
 /////////////////////////////////////////////////////////////////////////////
+int isDistinguished(POINT_T X) {
+    if ((X.x % 256)  ==  5) return 1;
+    else return 0;
+}
 
-void handle_newpoint(const POINT_T *X, long long order, long long *key)
+void handle_newpoint(POINT_T X, long long order, long long *key, int id)
 {
     int retval, num_emptyslotnotfound = 0;
     POINT_T H;
 
+    if (!isDistinguished(X)) return;
+
+    // pthread_mutex_lock(&lock);
+
     do {
-        check_slot_and_store(*X, &H, num_emptyslotnotfound, &retval);
+        check_slot_and_store(X, &H, num_emptyslotnotfound, &retval);
         switch (retval)  {
             case GOOD_COLLISION:
-                *key = get_k(X->r, X->s, H.r, H.s, order);
+                *key = get_k(X.r, X.s, H.r, H.s, order);
                 break;
             case EMPTY_SLOT_NOT_FOUND:
                 num_emptyslotnotfound++;
@@ -720,7 +754,7 @@ void handle_newpoint(const POINT_T *X, long long order, long long *key)
                 }
             case UNFRUITFUL_COLLISION:
                 // printf("   --  Unfruitful collision -- continuing ...\n");
-                printf("@");
+                // printf("@\n");
                 break;
             case STORED:
                 break;
@@ -733,9 +767,10 @@ void handle_newpoint(const POINT_T *X, long long order, long long *key)
 
     if (retval != GOOD_COLLISION) *key = NO_KEY_FOUND;
 
+    // pthread_mutex_unlock(&lock);
+
     return;
 }
-
 ////////////////////////////////////////////////////////////////////////////
 //
 // This function executes one iteration for one worker
@@ -745,37 +780,104 @@ void handle_newpoint(const POINT_T *X, long long order, long long *key)
 void
 worker_it_task(long long a, long long p, long long order, const int L, int id, long long *key) {
     // Calculate the next point
-    X[id] = nextpoint(X[id], a, p, order, L, &itPsets[id]);
+    X[id] = nextpoint(X[id], a, p, order, L, &itPsets_process);
 
     // Handle the new point checking if the key has been found
-    handle_newpoint(&X[id], order, key);
+    handle_newpoint(X[id], order, key, id);
 }
 
-int main(int argc, char** argv) {
+void* thread_func(void* args) {
+    int id = *((int*)args);
+
+    while(key == NO_KEY_FOUND) {
+        long long keyTemp = NO_KEY_FOUND;
+        worker_it_task(a, p, maxorder, L, id, &keyTemp);
+
+        if(keyTemp != NO_KEY_FOUND){
+            pthread_mutex_lock(&lock);
+            printf("key found = %lld\n", keyTemp);
+            key = keyTemp;
+            printf("key is = %lld\n\n", key);
+            pthread_mutex_unlock(&lock);
+            break;
+        }
 
 
-    int process_rank, size_of_cluster;
-    // Initing cluster
+
+        if(key != NO_KEY_FOUND) {
+            printf("PUTA Q PARIU MANO\n");
+            break;
+        }
+    }
+}
+
+int main(int argc, char **argv) {
+
     MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &size_of_cluster);
-    MPI_Comm_rank(MPI_COMM_WORLD, &process_rank);
 
+    MPI_Comm_rank(MPI_COMM_WORLD, &process_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size_of_cluster);
+    nworkers = size_of_cluster;
     struct timespec start_program, end_program;
     clock_gettime(CLOCK_MONOTONIC, &start_program);
-	long long a = 1, b = 44, p, maxorder, k, key;
 	int it_number, minits, maxits = 0, i;
 	POINT_T Q, P;
     struct timespec start, end;
 	double convergence_time, setup_time, total_it_num = 0.0, total_it_time = 0.0, total_su_time = 0.0;
     char *stepdef;
 
-    
-	switch (algorithm) {
-        case VOW:   printf("\n\nPOLLARD RHO ALGORITHM  --  VOW\n"); stepdef = "all-equal"; break;
-        case TOHA:  printf("\n\nPOLLARD RHO ALGORITHM  --  Tortoises and Hares\n"); stepdef = "1/2 equal + 1/2 varying";  break;
-        case HARES: printf("\n\nPOLLARD RHO ALGORITHM  --  Tortoises\n"); stepdef = "all-varying"; break;
-	}
-    
+    pthread_t pthread[size_of_cluster];
+    // POINT_T
+    const int point_struct_len = 4;
+    int point_blocklengths[point_struct_len];
+    MPI_Datatype point_types[point_struct_len];
+    MPI_Aint point_displacements[point_struct_len];
+
+    point_blocklengths[0] = 1; point_types[0] = MPI_LONG_LONG_INT;
+    point_displacements[0] = (size_t)&(itPsetBase.itpoint[0].x) - (size_t)&itPsetBase.itpoint[0];
+
+    point_blocklengths[1] = 1; point_types[1] = MPI_LONG_LONG_INT;
+    point_displacements[1] = (size_t)&(itPsetBase.itpoint[0].y) - (size_t)&itPsetBase.itpoint[0];
+
+    point_blocklengths[2] = 1; point_types[2] = MPI_LONG_LONG_INT;
+    point_displacements[2] = (size_t)&(itPsetBase.itpoint[0].r) - (size_t)&itPsetBase.itpoint[0];
+
+    point_blocklengths[3] = 1; point_types[3] = MPI_LONG_LONG_INT;
+    point_displacements[3] = (size_t)&(itPsetBase.itpoint[0].s) - (size_t)&itPsetBase.itpoint[0];
+
+    MPI_Type_create_struct(point_struct_len, point_blocklengths, point_displacements, point_types, &point_struct);
+    MPI_Type_commit(&point_struct);
+
+    // IT_POINT_SET
+    const int it_point_struct_len = 1;
+    int it_point_blocklengths[it_point_struct_len];
+    MPI_Datatype it_point_types[it_point_struct_len];
+    MPI_Aint it_point_displacements[it_point_struct_len];
+
+    it_point_blocklengths[0] = NUM_IT_FUNCTION_INTERVALS; it_point_types[0] = point_struct;
+    it_point_displacements[0] = (size_t)&(itPsetBase.itpoint) - (size_t)&itPsetBase;
+
+    MPI_Type_create_struct(it_point_struct_len, it_point_blocklengths, it_point_displacements, it_point_types, &it_point_struct);
+    MPI_Type_commit(&it_point_struct);
+
+    // char name[MPI_MAX_PROCESSOR_NAME];
+    // int len;
+    // MPI_Get_processor_name( name, &len );
+    // printf("\n\nEsse são os servidores: %s\n\n", name);
+
+    X = (POINT_T*) calloc(size_of_cluster, sizeof(POINT_T));
+    itPsets = (IT_POINT_SET*) calloc(size_of_cluster, sizeof(IT_POINT_SET));
+    if(process_rank == PROGRAM_ROOT){
+        pthread_mutex_init(&lock, NULL);
+        pthread_cond_init(&running_condition, NULL);
+        switch (algorithm) {
+            case VOW:   printf("\n\nPOLLARD RHO ALGORITHM  --  VOW\n"); stepdef = "all-equal"; break;
+            case TOHA:  printf("\n\nPOLLARD RHO ALGORITHM  --  Tortoises and Hares\n"); stepdef = "1/2 equal + 1/2 varying";  break;
+            case HARES: printf("\n\nPOLLARD RHO ALGORITHM  --  Tortoises\n"); stepdef = "all-varying"; break;
+        }
+        printf("\nNumber of bits of the EC prime field (16/20/24/28/32): %d\n\n", nbits);
+    }
+
 
 	/////////////////////////////////////////////////////////////////////////
 	//
@@ -785,8 +887,6 @@ int main(int argc, char** argv) {
 	//
 	/////////////////////////////////////////////////////////////////////////
 
-
-    printf("\nNumber of bits of the EC prime field (16/20/24/28/32): %d\n\n", nbits);
 
     //Pick elliptic curve parameters for chosen number of bits of the prime field module p
     switch (nbits)  {
@@ -825,23 +925,26 @@ int main(int argc, char** argv) {
             exit(-1);
     }
 
+    if(process_rank == PROGRAM_ROOT) {
+        if (a == 1) printf("\nElliptic curve:   y^2 = x^3 + x + %lld      (mod %lld, %d bits)\n\n", b, p, nbits);
+        else printf("\nElliptic curve:   y^2 = x^3 + %lldx + %lld      (mod %lld, %d bits)\n\n", a, b, p, nbits);
 
-	if (a == 1) printf("\nElliptic curve:   y^2 = x^3 + x + %lld      (mod %lld, %d bits)\n\n", b, p, nbits);
-	else printf("\nElliptic curve:   y^2 = x^3 + %lldx + %lld      (mod %lld, %d bits)\n\n", a, b, p, nbits);
+        printf("Order of the curve = %lld\n\n", maxorder);
 
-	printf("Order of the curve = %lld\n\n", maxorder);
+        printf("Number of workers = %d\n\n", nworkers);
 
-	printf("Number of workers = %d\n\n", nworkers);
-
-    // Calculating point Q = kP
-    printf("Calculating point Q = kP      (k = %lld)\n", k);
+        // Calculating point Q = kP
+        printf("Calculating point Q = kP      (k = %lld)\n", k);
+    }
     calc_P_sums(P, a, p, maxorder, nbits);
     calc_Q(&Q, Psums, k, nbits, a, p);
     calc_Q_sums(Q, a, p, maxorder, nbits);
 
-    printf("\n");
-    printf("P = (x = %8lld, y = %8lld) (r = %8lld, s = %8lld)         (Base Point)\n", P.x, P.y, P.r, P.s);
-    printf("Q = (x = %8lld, y = %8lld) (r = %8lld, s = %8lld)         (Q = kP    )\n\n\n", Q.x, Q.y, Q.r, Q.s);
+    if(process_rank == PROGRAM_ROOT) {
+        printf("\n");
+        printf("P = (x = %8lld, y = %8lld) (r = %8lld, s = %8lld)         (Base Point)\n", P.x, P.y, P.r, P.s);
+        printf("Q = (x = %8lld, y = %8lld) (r = %8lld, s = %8lld)         (Q = kP    )\n\n\n", Q.x, Q.y, Q.r, Q.s);
+    }
 
     // Initialize minits
     minits = maxorder;
@@ -851,105 +954,131 @@ int main(int argc, char** argv) {
     // Remember the number of iterations each run took to find the key (k).
     // Then calculate the expected (average) number of iterations that this
     // calculation takes.
-        int run, thread_num = 0;
+    int run;
 
-        // Initialize the random generator
-        srand((time(NULL)));
+    // Initialize the random generator
+    srand((time(NULL)) ^ process_rank);
 
-        for(run = 1; run <= MAX_RUNS; ++run) {
-                // Initialize the number of iterations
-                it_number = 1;
+    for(run = 1; run <= MAX_RUNS; ++run) {
+        // Initialize the number of iterations
+        it_number = 1;
 
-                // Start counting the setup time
-                clock_gettime(CLOCK_MONOTONIC, &start);
-
-            // Set up the running environment for the search for all workers
-            //printf("Run[%3d] setup:    ", run);
-
-            // Calculate the iteration point set base (randomly)
-            // rand_itpset tem 2 fors dentro
-            rand_itpset(&itPsetBase, Psums, Qsums, a, p, maxorder, L, nbits, algorithm, thread_num); // #MPI
-            // setup_worker é um setup simples
-            setup_worker(a, p, maxorder, L, nbits, thread_num, algorithm); // #MPI
-            //printf("   %3d", id+1);
-            //fflush(stdout);
-
-                //printf("\nRun[%3d] iterations: ", run);
-
-                // Stop counting the setup time and calculate it
-                clock_gettime(CLOCK_MONOTONIC, &end);
-
-                //setup_time = (double)((end - start) / CLOCKS_PER_SEC);
-                setup_time = (end.tv_sec - start.tv_sec);
-                setup_time += (end.tv_nsec - start.tv_nsec) / 1000000000.0;
-                setup_time *= 1000;
-                key = NO_KEY_FOUND;
-
-                // Start counting the execution time
-                clock_gettime(CLOCK_MONOTONIC, &start);
-
-                // #MPI
-                for ( ; ; ) {
-                    long long keyTemp;
-                    worker_it_task(a, p, maxorder, L, thread_num, &keyTemp);
-                    if (keyTemp != NO_KEY_FOUND) {
-                        key = keyTemp;
-                        break;
-                    }
-
-                    if (key != NO_KEY_FOUND) {
-                        //printf("  (%d its)\n", it_number);
-                        break;
-                    }
-                    it_number = it_number+1;
-                }
-
-                // Recover the current time and calculate the execution time
-                clock_gettime(CLOCK_MONOTONIC, &end);
-                convergence_time = (end.tv_sec - start.tv_sec);
-                convergence_time += (end.tv_nsec - start.tv_nsec) / 1000000000.0;
-                convergence_time *= 1000;
-
-                // Run converged. Print information for it.
-                printf("\nRun[%3d] converged after %4d iterations: k = %lld, nworkers = %4d,\n",
-                       run, it_number, key, nworkers);
-                printf("         setup time = %6.1lf ms, conv time = %6.1lf ms (itfs \"%s\")\n\n",
-                       setup_time, convergence_time, stepdef);
-
-                // Keep track of the minimum number of iterations needed to converge in all runs.
-                if (it_number < minits) {
-                    minits = it_number;
-                }
-
-                if (it_number > maxits) {
-                    maxits = it_number;
-                }
-
-                total_it_num  = total_it_num  + it_number;
-                total_su_time = total_su_time + setup_time;
-                total_it_time = total_it_time + convergence_time;
-
-            // Cleanup the hash table
-            for (i=0; i < TABLESIZE; i++) {
-                hashtable[i] = EMPTY_POINT;
-            }
+        if(process_rank == PROGRAM_ROOT) {
+            // Start counting the setup time
+            clock_gettime(CLOCK_MONOTONIC, &start);
         }
 
-    clock_gettime(CLOCK_MONOTONIC, &end_program);
-    double total_program = (end_program.tv_sec - start_program.tv_sec);
-    total_program += (end_program.tv_nsec - start_program.tv_nsec) / 1000000000.0;
-    total_program *= 1000;
+        // Set up the running environment for the search for all workers
+        // printf("Run in[%3d] setup:    order = %d\n", run, size_of_cluster);
 
-     // Final statistics
-    printf("\n\nFINAL STATISTICS\n\n");
-    printf("Runs = %d, Min Its # = %d,  Max Its = %d, Av. Iteration # = %.0lf\n", MAX_RUNS, minits, maxits, total_it_num/MAX_RUNS);
-    printf("Av. Setup Time = %.1lf ms, Total Setup Time = %.1lf ms\n", total_su_time/MAX_RUNS, total_su_time);
-    printf("Av. Iteration Time = %.1lf ms, Total Iteration Time = %.1lf ms\n", total_it_time/MAX_RUNS, total_it_time);
-    printf("Total Time (Setup + Convergence) = %.1lf ms\n", total_su_time + total_it_time);
+        // Calculate the iteration point set base (randomly)
+        rand_itpset(&itPsetBase, Psums, Qsums, a, p, maxorder, L, nbits, algorithm, process_rank);
+        setup_worker(a, p, maxorder, L, nbits, process_rank, algorithm);
+        
+        // printf("Run out   %3d\n", process_rank+1);
+        //fflush(stdout);
 
-    printf("\nTempo Total de Execucao do Programa = %.1lf ms\n", total_program);
+        //printf("\nRun[%3d] iterations: ", run);
+
+        if(process_rank == PROGRAM_ROOT) {
+            // Stop counting the setup time and calculate it
+            clock_gettime(CLOCK_MONOTONIC, &end);
+
+            //setup_time = (double)((end - start) / CLOCKS_PER_SEC);
+            setup_time = (end.tv_sec - start.tv_sec);
+            setup_time += (end.tv_nsec - start.tv_nsec) / 1000000000.0;
+            setup_time *= 1000;
+            key = NO_KEY_FOUND;
+
+            // Start counting the execution time
+            clock_gettime(CLOCK_MONOTONIC, &start);
+        }
+
+        MPI_Barrier(MPI_COMM_WORLD);
+        if(process_rank == PROGRAM_ROOT) {
+            int id[size_of_cluster];
+            for(int i=0; i < size_of_cluster && i < 12; ++i){
+                id[i] = i;
+                pthread_create(&(pthread[i]), NULL, thread_func,(void*) &id[i]);
+            }
+            // for ( ; ; ) {
+            //     long long keyTemp;
+            //     worker_it_task(a, p, maxorder, L, process_rank, &keyTemp);
+            //     if (keyTemp != NO_KEY_FOUND) {
+            //         key = keyTemp;
+            //         break;
+            //     }
+
+            //     if (key != NO_KEY_FOUND) {
+            //         //printf("  (%d its)\n", it_number);
+            //         break;
+            //     }
+            //     it_number = it_number+1;
+            // }
+
+            for(int i=0; i < size_of_cluster && i < 12; ++i)
+                pthread_join((pthread[i]), NULL);
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+        if(process_rank == PROGRAM_ROOT) {
+            // Recover the current time and calculate the execution time
+            clock_gettime(CLOCK_MONOTONIC, &end);
+            convergence_time = (end.tv_sec - start.tv_sec);
+            convergence_time += (end.tv_nsec - start.tv_nsec) / 1000000000.0;
+            convergence_time *= 1000;
+
+            // Run converged. Print information for it.
+            printf("\nRun[%3d] converged after %4d iterations: k = %lld, nworkers = %4d,\n",
+                    run, it_number, key, nworkers);
+            printf("         setup time = %6.1lf ms, conv time = %6.1lf ms (itfs \"%s\")\n\n",
+                    setup_time, convergence_time, stepdef);
+        }
+
+        // Keep track of the minimum number of iterations needed to converge in all runs.
+        if (it_number < minits) {
+            minits = it_number;
+        }
+
+        if (it_number > maxits) {
+            maxits = it_number;
+        }
+
+        if(process_rank == PROGRAM_ROOT) {
+            total_it_num  = total_it_num  + it_number;
+            total_su_time = total_su_time + setup_time;
+            total_it_time = total_it_time + convergence_time;
+        }
+
+        // Cleanup the hash table
+        if(process_rank == PROGRAM_ROOT)
+            memset(hashtable, 0, sizeof hashtable);
+
+        MPI_Barrier(MPI_COMM_WORLD);
+    }
+
+    if(process_rank == PROGRAM_ROOT) {
+        clock_gettime(CLOCK_MONOTONIC, &end_program);
+        double total_program = (end_program.tv_sec - start_program.tv_sec);
+        total_program += (end_program.tv_nsec - start_program.tv_nsec) / 1000000000.0;
+        total_program *= 1000;
+
+        // Final statistics
+        printf("\n\nFINAL STATISTICS\n\n");
+        printf("Runs = %d, Min Its # = %d,  Max Its = %d, Av. Iteration # = %.0lf\n", MAX_RUNS, minits, maxits, total_it_num/MAX_RUNS);
+        printf("Av. Setup Time = %.1lf ms, Total Setup Time = %.1lf ms\n", total_su_time/MAX_RUNS, total_su_time);
+        printf("Av. Iteration Time = %.1lf ms, Total Iteration Time = %.1lf ms\n", total_it_time/MAX_RUNS, total_it_time);
+        printf("Total Time (Setup + Convergence) = %.1lf ms\n", total_su_time + total_it_time);
+
+        printf("\nTempo Total de Execucao do Programa = %.1lf ms\n", total_program);
+        pthread_mutex_destroy(&lock);
+        pthread_cond_destroy(&running_condition);
+    }
 
     fflush(stdout);
+
+    MPI_Type_free(&point_struct);
+    MPI_Type_free(&it_point_struct);
     MPI_Finalize();
+
 	return 0;
 }

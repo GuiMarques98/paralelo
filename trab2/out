@@ -1,0 +1,3 @@
+mpirun --hostfile hostfile -ppn 1 -n $((1 * 1)) bin/saida
+[mpiexec@cm2] Sending Ctrl-C to processes as requested
+[mpiexec@cm2] Press Ctrl-C again to force abort
